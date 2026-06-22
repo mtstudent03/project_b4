@@ -1,3 +1,8 @@
 *.idea
 *.env
 watch-history.html
+your_instagram_activity/
+Kindle.Devices.ReadingSession.csv
+.DS_Store
+*.pyc
+__pycache__/

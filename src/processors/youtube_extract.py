@@ -1,24 +1,7 @@
-import pandas as pd
 import re
+import pandas as pd
 import requests
 import collections
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-API_KEY = os.getenv('YT_API_KEY')
-
-def parse_kindle(path):
-    df = pd.read_csv(path)
-    df['start_timestamp'] = pd.to_datetime(df['start_timestamp'], errors='coerce', utc=True)
-    df['date'] = df['start_timestamp'].dt.date
-    df['reading_minutes'] = df['total_reading_millis'] / 60000
-    df.drop(df[df['device_family'] == 'Kindle for Mac'].index, inplace=True) # This is only necessary in my case because for some reason my Kindle app on MacOS bugged out and reported a lot of false data
-    df.drop(columns=['device_serial_number', 'preferred_marketplace','ASIN','purchased_marketplace','device_family','device_serial_number','device_software_version','content_type', 'total_reading_millis', 'end_timestamp', 'start_timestamp'], inplace=True)
-    df.dropna( inplace=True )
-    df_daily = df.groupby('date')[['number_of_page_flips', 'reading_minutes']].sum()
-
-    return df_daily
 
 def parse_watch_history(path):
     watch_history = {}
@@ -61,7 +44,7 @@ def iso_to_seconds(iso_duration):
     return (hours * 3600) + (minutes * 60) + seconds
 
 def parse_yt(path, api_key):
-    #raw_history = parse_watch_history(path)
+    #raw_history = parse_watch_history(path) # Commented out for testing, limiting API calls
     raw_history = {'7DhPmHuajj4': 'Jan 16, 2024',
                    'W4jMTrrpSGQ': 'Jan 16, 2024',
                    'SWcYm29TUh8': 'Jan 16, 2024',
@@ -76,7 +59,6 @@ def parse_yt(path, api_key):
     final_output = collections.defaultdict(list)
 
     for video_id, date in raw_history.items():
-        # Look up the duration (defaults to None if video was deleted/private)
         duration = video_durations.get(video_id)
         if duration:
             final_output[date].append(duration)
@@ -86,18 +68,16 @@ def parse_yt(path, api_key):
     processed_rows = []
 
     for date_str, durations in final_output.items():
-        # Convert all durations for this day into seconds and sum them up
         total_seconds_for_day = sum(iso_to_seconds(d) for d in durations)
 
         processed_rows.append(
             {
-                "Date": pd.to_datetime(date_str),  # Converts string to a real datetime object
-                "Watchtime": total_seconds_for_day / 60,  # Keeps a raw number column for sorting/plotting
+                "date": pd.to_datetime(date_str),
+                "yt_time": total_seconds_for_day / 60,
             }
         )
 
     df_yt = pd.DataFrame(processed_rows)
-    df_yt = df_yt.sort_values(by="Date", ascending=False).reset_index(drop=True)
+    df_yt = df_yt.groupby('date')[['yt_time']].sum()
 
     return df_yt
-
