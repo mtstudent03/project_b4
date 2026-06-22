@@ -32,7 +32,7 @@ def process_all_users(base_directory, yt_api_key=None):
         user_folder = os.path.join(base_directory, user_id)
 
         ig_path = os.path.join(user_folder, "your_instagram_activity")
-        yt_path = os.path.join(user_folder, "youtube_data.json")
+        yt_path = os.path.join(user_folder, "watch-history.html")
         reading_path = os.path.join(user_folder, "Kindle.Devices.ReadingSession.csv")
 
         try:

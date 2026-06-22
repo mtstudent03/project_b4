@@ -1,0 +1,9 @@
+pandas
+requests
+collections
+re
+json
+os
+shutil
+dotenv
+sqalchemy

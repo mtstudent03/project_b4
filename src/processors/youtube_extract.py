@@ -3,6 +3,8 @@ import pandas as pd
 import requests
 import collections
 
+yt_test_mode = True
+
 def parse_watch_history(path):
     watch_history = {}
     pattern = re.compile(
