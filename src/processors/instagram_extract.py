@@ -33,9 +33,13 @@ def extract_instagram_timestamps(root_folder):
     df = pd.DataFrame(timestamps, columns=['timestamp'])
 
     if not df.empty:
-        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s', errors='coerce').fillna(
-            pd.to_datetime(df['timestamp'], unit='ms', errors='coerce')
-        )
+        def parse_ts(val):
+            try:
+                t = float(val)
+                return pd.Timestamp(t, unit='ms') if t > 1e10 else pd.Timestamp(t, unit='s')
+            except (ValueError, TypeError):
+                return pd.NaT
+        df['timestamp'] = df['timestamp'].apply(parse_ts)
         df = df.dropna().sort_values(by='timestamp').reset_index(drop=True)
 
     return df

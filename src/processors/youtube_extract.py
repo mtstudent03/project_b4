@@ -46,13 +46,13 @@ def iso_to_seconds(iso_duration):
     return (hours * 3600) + (minutes * 60) + seconds
 
 def parse_yt(path, api_key):
-    #raw_history = parse_watch_history(path) # Commented out for testing, limiting API calls
-    raw_history = {'7DhPmHuajj4': 'Jan 16, 2024',
-                   'W4jMTrrpSGQ': 'Jan 16, 2024',
-                   'SWcYm29TUh8': 'Jan 16, 2024',
-                   '-6Us2pnBRT4': 'Jan 16, 2024',
-                   'wHXjuD97vFA': 'Jan 16, 2024',
-                   'KXLREps3blw': 'Jan 16, 2024'}
+    raw_history = parse_watch_history(path) # Commented out for testing, limiting API calls
+    #raw_history = {'7DhPmHuajj4': 'Jan 16, 2024',
+     #              'W4jMTrrpSGQ': 'Jan 16, 2024',
+      #             'SWcYm29TUh8': 'Jan 16, 2024',
+      #             '-6Us2pnBRT4': 'Jan 16, 2024',
+       #            'wHXjuD97vFA': 'Jan 16, 2024',
+       #            'KXLREps3blw': 'Jan 16, 2024'}
 
     video_ids = list(raw_history.keys())
     video_durations = api_get_duration(video_ids, api_key)

@@ -94,6 +94,7 @@ def main():
             master_df.to_sql("user_metrics", con=engine, if_exists="append", index=False, method=upsert)
             print("[SUCCESS] Data securely encrypted in transit and pushed to Postgres.")
 
+
         except Exception as db_error:
             print(f"[WARN] Database write pipeline aborted: {db_error}")
 
