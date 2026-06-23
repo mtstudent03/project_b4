@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import pandas as pd
 import shutil
 from sqlalchemy import create_engine
+from sqlalchemy.dialects.postgresql import insert
 
 from processors.instagram_extract import parse_ig
 from processors.youtube_extract import parse_yt
@@ -71,24 +72,30 @@ def process_all_users(base_directory, yt_api_key=None):
         return pd.DataFrame()
 
 
+def upsert(table, conn, keys, data_iter):
+    rows = [dict(zip(keys, row)) for row in data_iter]
+    stmt = insert(table.table).values(rows)
+    update_cols = {k: stmt.excluded[k] for k in keys if k not in ('id', 'date')}
+    conn.execute(stmt.on_conflict_do_update(index_elements=['id', 'date'], set_=update_cols))
+
 def main():
-    data_dir = os.path.join('..','data')
+    data_dir = os.path.join(os.path.dirname(__file__), '..', 'data')
 
     master_df = process_all_users(data_dir, yt_api_key=API_KEY)
 
     print("\n--- GLOBAL LIBRARY ---")
     print(master_df)
 
-    # if not master_df.empty:
-    #     print("\n[INFO] Initializing secure transport layer handshake...")
-    #     try:
-    #         engine = db_engine()
-    #
-    #         master_df.to_sql("user_metrics", con=engine, if_exists="append", index=False)
-    #         print("[SUCCESS] Data securely encrypted in transit and pushed to Postgres.")
-    #
-    #     except Exception as db_error:
-    #         print(f"[WARN] Database write pipeline aborted: Ingestion blocked.")
+    if not master_df.empty:
+        print("\n[INFO] Initializing secure transport layer handshake...")
+        try:
+            engine = db_engine()
+
+            master_df.to_sql("user_metrics", con=engine, if_exists="append", index=False, method=upsert)
+            print("[SUCCESS] Data securely encrypted in transit and pushed to Postgres.")
+
+        except Exception as db_error:
+            print(f"[WARN] Database write pipeline aborted: {db_error}")
 
 if __name__ == "__main__":
     main()
