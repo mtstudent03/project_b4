@@ -80,6 +80,15 @@ def process_all_users(base_directory, yt_api_key=None):
         return pd.DataFrame()
 
 
+def migrate_schema(engine):
+    migrations = [
+        "ALTER TABLE user_metrics ADD COLUMN IF NOT EXISTS yt_time FLOAT",
+        "ALTER TABLE user_metrics ADD COLUMN IF NOT EXISTS concentration INTEGER",
+    ]
+    with engine.begin() as conn:
+        for stmt in migrations:
+            conn.execute(text(stmt))
+
 def upsert(table, conn, keys, data_iter):
     rows = [dict(zip(keys, row)) for row in data_iter]
     stmt = insert(table.table).values(rows)
@@ -98,6 +107,7 @@ def main():
         print("\n[INFO] Initializing secure transport layer handshake...")
         try:
             engine = db_engine()
+            migrate_schema(engine)
 
             master_df.to_sql("user_metrics", con=engine, if_exists="append", index=False, method=upsert)
             print("[SUCCESS] Data securely encrypted in transit and pushed to Postgres.")
