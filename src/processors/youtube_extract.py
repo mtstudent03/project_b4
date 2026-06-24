@@ -1,4 +1,5 @@
 import re
+import random
 import pandas as pd
 import requests
 import collections
@@ -32,6 +33,15 @@ def api_get_duration(video_ids, api_key):
 
     return durations
 
+def test_mode_durations(video_ids):
+    """Assign random realistic durations without calling the API."""
+    durations = {}
+    for vid in video_ids:
+        minutes = random.randint(3, 28)
+        seconds = random.randint(0, 59)
+        durations[vid] = f"PT{minutes}M{seconds}S"
+    return durations
+
 def iso_to_seconds(iso_duration):
     if not iso_duration:
         return 0
@@ -46,16 +56,13 @@ def iso_to_seconds(iso_duration):
     return (hours * 3600) + (minutes * 60) + seconds
 
 def parse_yt(path, api_key):
-    raw_history = parse_watch_history(path) # Commented out for testing, limiting API calls
-    #raw_history = {'7DhPmHuajj4': 'Jan 16, 2024',
-     #              'W4jMTrrpSGQ': 'Jan 16, 2024',
-      #             'SWcYm29TUh8': 'Jan 16, 2024',
-      #             '-6Us2pnBRT4': 'Jan 16, 2024',
-       #            'wHXjuD97vFA': 'Jan 16, 2024',
-       #            'KXLREps3blw': 'Jan 16, 2024'}
+    raw_history = parse_watch_history(path)
 
     video_ids = list(raw_history.keys())
-    video_durations = api_get_duration(video_ids, api_key)
+    if yt_test_mode:
+        video_durations = test_mode_durations(video_ids)
+    else:
+        video_durations = api_get_duration(video_ids, api_key)
 
 
     final_output = collections.defaultdict(list)

@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import insert
 from processors.instagram_extract import parse_ig
 from processors.youtube_extract import parse_yt
 from processors.kindle_extract import parse_kindle
+from processors.concentration_extract import parse_concentration
 from processors.library_merger import library_merger
 
 load_dotenv()
@@ -35,6 +36,7 @@ def process_all_users(base_directory, yt_api_key=None):
         ig_path = os.path.join(user_folder, "your_instagram_activity")
         yt_path = os.path.join(user_folder, "watch-history.html")
         reading_path = os.path.join(user_folder, "Kindle.Devices.ReadingSession.csv")
+        concentration_path = os.path.join(user_folder, "concentration.csv")
 
         try:
             ig_df = parse_ig(ig_path)
@@ -54,7 +56,13 @@ def process_all_users(base_directory, yt_api_key=None):
             print(f"   [WARN] Skipped Kindle processing for User ID: {user_id}")
             reading_df = pd.DataFrame()
 
-        user_master = library_merger(yt_df, reading_df, ig_df)
+        try:
+            concentration_df = parse_concentration(concentration_path)
+        except Exception:
+            print(f"   [WARN] Skipped Concentration processing for User ID: {user_id}")
+            concentration_df = pd.DataFrame()
+
+        user_master = library_merger(yt_df, reading_df, ig_df, concentration_df)
 
         if not user_master.empty:
             user_master = user_master.reset_index().rename(columns={'index': 'date'})
