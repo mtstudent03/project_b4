@@ -16,6 +16,8 @@ This is a Python-based data pipeline and database. It processes personal data ex
 
 ## Requirements
 See requirements.txt for required packages.
+A .env file needs to be created and added to the /src to allow main.py to function.
+This file needs to contain a Youtube Data API key, the credentials for the PostGres DB, and an ENVIRONMENT variable to tell it whether it is in development or production, as this affects whether raw source files are deleted after ingestion or kept.  
 
 ## Usage
 1. Place exports inside the `data/` directory.
